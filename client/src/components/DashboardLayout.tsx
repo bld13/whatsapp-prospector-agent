@@ -28,8 +28,8 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Campanhas", path: "/campaigns" },
+  { icon: Users, label: "Dashboard", path: "/" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -56,7 +56,9 @@ export default function DashboardLayout({
     return <DashboardLayoutSkeleton />
   }
 
-  if (!user) {
+  // Bypass authentication check in development mode
+  const isDev = import.meta.env.DEV;
+  if (!user && !isDev) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
