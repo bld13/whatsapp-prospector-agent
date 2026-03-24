@@ -34,7 +34,7 @@ export const campaigns = mysqlTable(
     userId: int("userId").notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     niche: varchar("niche", { length: 255 }).notNull(),
-    cnaeCodes: text("cnaeCodes").notNull(), // JSON array of CNAE codes
+    cnaeCodes: text("cnaeCodes"), // JSON array of CNAE codes (optional)
     regions: text("regions").notNull(), // JSON array of UF codes (e.g., ["SP", "RJ"])
     minCapitalSocial: decimal("minCapitalSocial", { precision: 15, scale: 2 }),
     status: mysqlEnum("status", ["draft", "active", "paused", "completed"]).default("draft").notNull(),
@@ -67,6 +67,9 @@ export const leads = mysqlTable(
     cnaeSecundarios: text("cnaeSecundarios"), // JSON array
     naturezaJuridica: varchar("naturezaJuridica", { length: 255 }),
     situacaoCadastral: varchar("situacaoCadastral", { length: 50 }),
+    decisionMakers: text("decisionMakers"), // JSON array of DecisionMaker objects
+    outreachStatus: mysqlEnum("outreachStatus", ["none", "pending", "sent", "failed"]).default("none").notNull(),
+    outreachLastSent: timestamp("outreachLastSent"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },

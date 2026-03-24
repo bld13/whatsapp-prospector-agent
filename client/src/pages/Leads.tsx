@@ -224,15 +224,38 @@ export default function Leads() {
                         {lead.contact?.status || "novo"}
                       </Badge>
                     </div>
-                    <Select
-                      value={lead.contact?.status || "novo"}
-                      onValueChange={(status) =>
-                        updateContactMutation.mutate({
-                          leadId: lead.id,
-                          status: status as any,
-                        })
-                      }
-                    >
+                    <div className="flex gap-2">
+                      {lead.qualification?.isQualified && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="bg-purple-600 hover:bg-purple-700"
+                          disabled={(lead as any).outreachStatus === "sent"}
+                          onClick={() => {
+                            const promise = (trpc as any).campaigns.processOutreach.mutateAsync({ leadId: lead.id });
+                            toast.promise(
+                              promise,
+                              {
+                                loading: "Buscando decisores e enviando proposta...",
+                                success: "Outreach enviado com sucesso!",
+                                error: (err) => `Erro: ${err.message}`,
+                              }
+                            );
+                            promise.then(() => refetch());
+                          }}
+                        >
+                          {(lead as any).outreachStatus === "sent" ? "Outreach Enviado" : "Iniciar Outreach"}
+                        </Button>
+                      )}
+                      <Select
+                        value={lead.contact?.status || "novo"}
+                        onValueChange={(status) =>
+                          updateContactMutation.mutate({
+                            leadId: lead.id,
+                            status: status as any,
+                          })
+                        }
+                      >
                       <SelectTrigger className="w-40">
                         <SelectValue />
                       </SelectTrigger>

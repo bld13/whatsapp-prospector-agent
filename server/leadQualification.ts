@@ -44,6 +44,14 @@ export function estimateCustomerBase(
     "4711300": { 1: 100, 2: 1000, 3: 10000, 4: 100000 }, // E-commerce
   };
 
+  // Se o CNAE não for fornecido ou não estiver mapeado, use uma estimativa padrão baseada apenas no porte
+  if (!cnae || !baseEstimates[cnae]) {
+    // Estimativas padrão se CNAE não for específico
+    if (porteScore === 4) return 50000; // Grande Empresa
+    if (porteScore === 3) return 10000; // Média Empresa
+    if (porteScore === 2) return 2000;  // EPP
+    return 500; // ME ou desconhecido
+  }
   return baseEstimates[cnae]?.[porteScore] || 1000;
 }
 
@@ -65,7 +73,7 @@ export function qualifyLead(
   const capitalSocial = lead.capitalSocial
     ? parseFloat(lead.capitalSocial.toString())
     : 0;
-  const minCapital = minCapitalSocial ? parseFloat(minCapitalSocial.toString()) : 100000;
+  const minCapital = minCapitalSocial !== undefined && minCapitalSocial !== null ? parseFloat(minCapitalSocial.toString()) : 100000;
 
   if (capitalSocial >= minCapital) {
     reasons.push(`Capital social adequado: R$ ${capitalSocial.toFixed(2)}`);
@@ -86,18 +94,19 @@ export function qualifyLead(
   }
 
   // Critério 3: Base de Clientes Estimada
-  const cnae = lead.cnpj.substring(0, 7); // Simplificado
+  const cnae = lead.cnaeSecundarios && JSON.parse(lead.cnaeSecundarios).length > 0 ? JSON.parse(lead.cnaeSecundarios)[0] : (lead.cnpj ? lead.cnpj.substring(0, 7) : ""); // Usar CNAE secundário se disponível, senão principal simplificado do CNPJ, senão vazio
   const estimatedCustomers = estimateCustomerBase(cnae, lead.porte);
-  if (estimatedCustomers >= 10000) {
-    reasons.push(
-      `Base de clientes estimada: ${estimatedCustomers.toLocaleString("pt-BR")}`
-    );
-    score += 25;
-  } else {
-    reasons.push(
-      `Base de clientes baixa: ${estimatedCustomers.toLocaleString("pt-BR")}`
-    );
+
+  // Novo Critério: Potencial de Alto Volume (inferido)
+  if (estimatedCustomers >= 10000 && porteScore >= 3) { // Média/Grande Empresa com alta base estimada
+    reasons.push("Alto potencial de volume de comunicação (base de clientes e porte)");
+    score += 30; // Dar um peso maior para este critério
+  } else if (estimatedCustomers >= 5000 && porteScore >= 2) { // EPP com base estimada razoável
+    reasons.push("Potencial de volume de comunicação (base de clientes e porte)");
+    score += 15;
   }
+  // O critério de Base de Clientes Estimada agora é mais integrado ao 'Potencial de Alto Volume'
+  // Removendo a pontuação duplicada aqui para dar mais peso ao novo critério de ICP.
 
   // Critério 4: Situação Cadastral
   if (lead.situacaoCadastral === "Ativa") {
@@ -152,7 +161,7 @@ export function detectApiOfficial(lead: Lead): {
     "6411100", // Banco
     "6520100", // Plano de saúde
   ];
-  const cnaePrincipal = lead.cnpj?.substring(0, 7) || "";
+  const cnaePrincipal = lead.cnaeSecundarios ? JSON.parse(lead.cnaeSecundarios)[0] : lead.cnpj?.substring(0, 7) || "";
   if (apiOfficialNiches.includes(cnaePrincipal)) {
     indicators.push("Nicho com alta adoção de API oficial");
     confidence += 25;
@@ -173,7 +182,7 @@ export function detectApiOfficial(lead: Lead): {
     confidence += 15;
   }
 
-  const detected = confidence >= 50; // Threshold de 50%
+  const detected = confidence >= 60; // Aumentar o threshold para maior confiança na detecção de API oficial
 
   return { detected, confidence: Math.min(confidence, 100), indicators };
 }
@@ -189,7 +198,7 @@ export function generateSalesArguments(lead: Lead): {
 } {
   const porteScore = PORTE_CLASSIFICATION[lead.porte || ""] || 1;
   const estimatedCustomers = estimateCustomerBase(
-    lead.cnpj?.substring(0, 7) || "",
+    (lead.cnaeSecundarios ? JSON.parse(lead.cnaeSecundarios)[0] : lead.cnpj?.substring(0, 7)) || "",
     lead.porte
   );
 
@@ -200,7 +209,9 @@ export function generateSalesArguments(lead: Lead): {
   if (porteScore >= 3 && estimatedCustomers >= 50000) {
     costReductionEstimate = "40-60%";
     keyBenefits = [
-      "Redução significativa de custos com disparos em massa",
+      "Redução significativa de custos com templates de MARKETING",
+      "Plataforma ilimitada para disparos em massa (sem limites de BM)",
+      "Solução para problemas de bloqueio de números em escala",
       "Sem limites diários de quantidade de mensagens",
       "Infraestrutura estável e confiável da Meta",
       "Conformidade total com LGPD e regulamentações",
@@ -210,23 +221,25 @@ export function generateSalesArguments(lead: Lead): {
   } else if (porteScore >= 2 && estimatedCustomers >= 10000) {
     costReductionEstimate = "30-50%";
     keyBenefits = [
-      "Redução de custos com mensagens recorrentes",
-      "Escalabilidade sem preocupação com bloqueios",
+      "Redução de custos com templates de MARKETING",
+      "Escalabilidade sem preocupação com limites de BM ou bloqueios",
+
       "Melhor taxa de entrega e confiabilidade",
       "Conformidade com regulamentações de proteção de dados",
       "Acesso a recursos avançados de templates e mídia",
     ];
   } else {
     keyBenefits = [
-      "Redução de custos operacionais",
+      "Redução de custos operacionais com comunicação de marketing",
+      "Evite bloqueios e limites de envio com nossa plataforma ilimitada",
       "Estabilidade e confiabilidade garantidas",
       "Sem riscos de bloqueios de conta",
       "Suporte técnico profissional",
     ];
   }
 
-  const title = `Otimize seus Disparos de WhatsApp - ${lead.razaoSocial}`;
-  const description = `Migre para a API Oficial do WhatsApp e economize até ${costReductionEstimate} em custos de comunicação. Com base em ${estimatedCustomers.toLocaleString("pt-BR")} clientes, sua empresa pode se beneficiar de uma solução estável, escalável e em conformidade com as regulamentações.`;
+  const title = `Transforme seu Marketing no WhatsApp - ${lead.razaoSocial}`;
+  const description = `Sua empresa pode economizar até ${costReductionEstimate} em custos de templates de marketing e escalar seus disparos sem limites de BM ou preocupações com bloqueios. Com base em ${estimatedCustomers.toLocaleString("pt-BR")} clientes, sua empresa pode se beneficiar de uma solução estável, escalável e em conformidade com as regulamentações.`;
 
   return {
     title,

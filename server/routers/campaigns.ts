@@ -37,7 +37,7 @@ export const campaignsRouter = router({
       z.object({
         name: z.string().min(1, "Nome da campanha é obrigatório"),
         niche: z.string().min(1, "Nicho é obrigatório"),
-        cnaeCodes: z.array(z.string()).min(1, "Pelo menos um CNAE é obrigatório"),
+        cnaeCodes: z.array(z.string()).optional(),
         regions: z.array(z.string()).min(1, "Pelo menos uma região é obrigatória"),
         minCapitalSocial: z.number().optional(),
       })
@@ -48,7 +48,7 @@ export const campaignsRouter = router({
           userId: ctx.user.id,
           name: input.name,
           niche: input.niche,
-          cnaeCodes: JSON.stringify(input.cnaeCodes),
+          cnaeCodes: input.cnaeCodes ? JSON.stringify(input.cnaeCodes) : null,
           regions: JSON.stringify(input.regions),
           minCapitalSocial: input.minCapitalSocial
             ? input.minCapitalSocial.toString()
@@ -223,8 +223,8 @@ export const campaignsRouter = router({
               .join("\n");
 
             await notifyOwner({
-              title: `🎯 Novo Lead Qualificado: ${leadRecord.razaoSocial}`,
-              content: `Uma empresa qualificada foi encontrada na campanha "${campaign.name}".\n\nEmpresa: ${leadRecord.razaoSocial}\nCNPJ: ${leadRecord.cnpj}\nPorte: ${leadRecord.porte}\nLocalização: ${leadRecord.municipio}, ${leadRecord.uf}\n\nAPI Oficial: ${apiOfficialStatus}\nEconomia Estimada: ${salesArgs.costReductionEstimate}\n\nMotivos da Qualificação:\n${reasonsList}`,
+              title: `🎯 Novo Lead Qualificado (Marketing): ${leadRecord.razaoSocial}`,
+              content: `Uma empresa com alto potencial para otimizar o marketing no WhatsApp foi encontrada na campanha "${campaign.name}".\n\nEmpresa: ${leadRecord.razaoSocial}\nCNPJ: ${leadRecord.cnpj}\nPorte: ${leadRecord.porte}\nLocalização: ${leadRecord.municipio}, ${leadRecord.uf}\n\nAPI Oficial Detectada: ${apiOfficialStatus}\nPotencial de Economia em Marketing: ${salesArgs.costReductionEstimate}\n\nMotivos da Qualificação:\n${reasonsList}\n\nPrincipais Dores Resolvidas:\n• Redução de custos com templates de MARKETING\n• Plataforma ilimitada para disparos em massa (sem limites de BM)\n• Solução para problemas de bloqueio de números em escala`,
             });
           } catch (error) {
             console.warn("[Campaigns] Erro ao notificar owner:", error);
@@ -344,6 +344,40 @@ export const campaignsRouter = router({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erro ao atualizar contato",
         });
+      }
+    }),
+
+  // Buscar decisores e enviar outreach
+  processOutreach: protectedProcedure
+    .input(z.object({ leadId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { getLeadById, updateLead } = await import("../db");
+        const { findDecisionMakers, generateOutreachMessage, sendOutreach } = await import("../outreachService");
+        
+        const lead = await getLeadById(input.leadId);
+        if (!lead) throw new TRPCError({ code: "NOT_FOUND", message: "Lead não encontrado" });
+
+        // 1. Buscar Decisores
+        const decisionMakers = await findDecisionMakers(lead);
+        
+        // 2. Gerar e Enviar para o primeiro decisor (Exemplo)
+        const salesArgs = generateSalesArguments(lead);
+        const message = generateOutreachMessage(lead, decisionMakers[0], salesArgs);
+        
+        const success = await sendOutreach(decisionMakers[0].email || lead.email || "", `Proposta de Otimização de Marketing - ${lead.razaoSocial}`, message);
+
+        // 3. Atualizar Lead no Banco
+        await updateLead(lead.id, {
+          decisionMakers: JSON.stringify(decisionMakers),
+          outreachStatus: success ? "sent" : "failed",
+          outreachLastSent: new Date(),
+        });
+
+        return { success, decisionMakers, message };
+      } catch (error) {
+        console.error("[Outreach] Erro ao processar outreach:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar outreach" });
       }
     }),
 });

@@ -52,15 +52,15 @@ export default function Campaigns() {
       .map((r) => r.trim().toUpperCase())
       .filter((r) => r);
 
-    if (!formData.name || !formData.niche || cnaeCodes.length === 0 || regions.length === 0) {
-      toast.error("Preencha todos os campos obrigatórios");
+    if (!formData.name || !formData.niche || regions.length === 0) {
+      toast.error("Preencha todos os campos obrigatórios (Nome, Nicho e Regiões)");
       return;
     }
 
     createCampaignMutation.mutate({
       name: formData.name,
       niche: formData.niche,
-      cnaeCodes,
+      cnaeCodes: cnaeCodes.length > 0 ? cnaeCodes : undefined,
       regions,
       minCapitalSocial: formData.minCapitalSocial ? parseFloat(formData.minCapitalSocial) : undefined,
     });
@@ -98,7 +98,7 @@ export default function Campaigns() {
             <DialogHeader>
               <DialogTitle>Criar Nova Campanha</DialogTitle>
               <DialogDescription>
-                Configure os parâmetros de busca para sua campanha de prospecção
+                Configure os parâmetros de busca para encontrar empresas com alto potencial de marketing no WhatsApp
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,13 +123,14 @@ export default function Campaigns() {
               </div>
 
               <div>
-                <Label htmlFor="cnaeCodes">Códigos CNAE * (separados por vírgula)</Label>
+                <Label htmlFor="cnaeCodes">Códigos CNAE (opcional - separados por vírgula)</Label>
                 <Input
                   id="cnaeCodes"
-                  placeholder="Ex: 6190000, 6411100"
+                  placeholder="Ex: 6190000, 6411100 (deixe em branco para buscar em todos os nichos)"
                   value={formData.cnaeCodes}
                   onChange={(e) => setFormData({ ...formData, cnaeCodes: e.target.value })}
                 />
+                <p className="text-xs text-gray-500 mt-1">Se não preenchido, o sistema buscará empresas com alto potencial de volume de marketing em todas as categorias.</p>
               </div>
 
               <div>
@@ -187,10 +188,12 @@ export default function Campaigns() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">CNAE:</span>
-                    <p className="font-mono text-xs">{campaign.cnaeCodes.join(", ")}</p>
-                  </div>
+                  {campaign.cnaeCodes && campaign.cnaeCodes.length > 0 && (
+                    <div>
+                      <span className="text-gray-600">CNAE:</span>
+                      <p className="font-mono text-xs">{campaign.cnaeCodes.join(", ")}</p>
+                    </div>
+                  )}
                   <div>
                     <span className="text-gray-600">Regiões:</span>
                     <p className="font-mono text-xs">{campaign.regions.join(", ")}</p>

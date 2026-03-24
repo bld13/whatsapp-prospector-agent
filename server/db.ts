@@ -13,6 +13,7 @@ import {
   InsertLeadQualification,
   InsertLeadContact,
   InsertSalesArgument,
+  Lead,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -183,6 +184,24 @@ export async function getLeadByCnpj(cnpj: string) {
     .where(eq(leads.cnpj, cnpj))
     .limit(1);
   return result[0];
+}
+
+export async function getLeadById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db
+    .select()
+    .from(leads)
+    .where(eq(leads.id, id))
+    .limit(1);
+  return result[0];
+}
+
+export async function updateLead(id: number, data: Partial<Lead>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(leads).set(data).where(eq(leads.id, id));
+  return getLeadById(id);
 }
 
 // Lead qualification queries
