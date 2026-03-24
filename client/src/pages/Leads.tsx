@@ -54,7 +54,7 @@ export default function Leads() {
   });
 
   const updateContactMutation = useMutation({
-    mutationFn: (params: { leadId: number; status: any }) =>
+    mutationFn: (params: { leadId: number; status: "novo" | "contatado" | "qualificado" | "convertido" | "rejeitado" }) =>
       trpc.campaigns.updateContactStatus.mutate(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads", campaignId] });
@@ -174,9 +174,9 @@ export default function Leads() {
                         size="sm"
                         variant="default"
                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs h-9"
-                        disabled={(lead as any).outreachStatus === "sent"}
+                        disabled={lead.outreachStatus === "sent"}
                         onClick={() => {
-                          const promise = (trpc as any).campaigns.processOutreach.mutateAsync({ leadId: lead.id });
+                          const promise = trpc.campaigns.processOutreach.mutateAsync({ leadId: lead.id });
                           toast.promise(
                             promise,
                             {
@@ -189,7 +189,7 @@ export default function Leads() {
                         }}
                       >
                         <Zap className="w-3 h-3 mr-1" />
-                        {(lead as any).outreachStatus === "sent" ? "Enviado" : "Outreach"}
+                        {lead.outreachStatus === "sent" ? "Enviado" : "Outreach"}
                       </Button>
                     )}
                     
@@ -256,13 +256,13 @@ export default function Leads() {
                             </div>
                           )}
 
-                          {(lead as any).decisionMakers && (
+                          {lead.decisionMakers && (
                             <div className="space-y-3">
                               <h4 className="text-sm font-bold flex items-center gap-2">
                                 <User className="w-4 h-4" /> Decisores Identificados
                               </h4>
                               <div className="grid grid-cols-1 gap-3">
-                                {JSON.parse((lead as any).decisionMakers || "[]").map((dm: any, i: number) => (
+                                {JSON.parse(lead.decisionMakers || "[]").map((dm: any, i: number) => (
                                   <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                                     <div>
                                       <p className="text-sm font-bold">{dm.name}</p>

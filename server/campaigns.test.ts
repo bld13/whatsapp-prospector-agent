@@ -129,7 +129,7 @@ describe("Lead Qualification", () => {
 
     it("deve gerar argumentos com economia alta para grande empresa", () => {
       const args = generateSalesArguments(mockLead);
-      expect(args.title).toContain("Otimize");
+      expect(args.title).toContain("Transforme seu Marketing");
       expect(args.description).toBeTruthy();
       expect(args.keyBenefits.length).toBeGreaterThan(0);
       expect(args.costReductionEstimate).toContain("%");

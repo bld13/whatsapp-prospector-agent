@@ -248,7 +248,7 @@ export const campaignsRouter = router({
     }),
 
   // Listar leads de uma campanha
-  listLeads: protectedProcedure
+  getLeads: protectedProcedure
     .input(
       z.object({
         campaignId: z.number(),

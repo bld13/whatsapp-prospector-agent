@@ -159,7 +159,14 @@ export function detectApiOfficial(lead: Lead): {
   const apiOfficialNiches = [
     "6190000", // ISP
     "6411100", // Banco
+    "6411200", // Banco Múltiplo
+    "6421100", // Bancos Comerciais
+    "6422200", // Bancos de Investimento
+    "6511100", // Seguro de Vida
+    "6512100", // Seguros Não-Vida
     "6520100", // Plano de saúde
+    "4711300", // Hipermercados
+    "4712100", // Supermercados
   ];
   const cnaePrincipal = lead.cnaeSecundarios ? JSON.parse(lead.cnaeSecundarios)[0] : lead.cnpj?.substring(0, 7) || "";
   if (apiOfficialNiches.includes(cnaePrincipal)) {
@@ -182,7 +189,7 @@ export function detectApiOfficial(lead: Lead): {
     confidence += 15;
   }
 
-  const detected = confidence >= 60; // Aumentar o threshold para maior confiança na detecção de API oficial
+  const detected = confidence >= 55; // Ajustado para ser um pouco mais sensível mantendo a confiança
 
   return { detected, confidence: Math.min(confidence, 100), indicators };
 }

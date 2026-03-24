@@ -224,7 +224,7 @@ export default function Campaigns() {
                     className="flex-1 bg-indigo-600 hover:bg-indigo-700"
                     onClick={() => {
                       toast.promise(
-                        (trpc as any).campaigns.runDiscovery.mutateAsync({ campaignId: campaign.id }),
+                        trpc.campaigns.runDiscovery.mutateAsync({ campaignId: campaign.id }),
                         {
                           loading: "Agente prospectando mercado...",
                           success: (data) => `Prospecção concluída! ${data.totalFound} empresas encontradas, ${data.totalQualified} qualificadas.`,
