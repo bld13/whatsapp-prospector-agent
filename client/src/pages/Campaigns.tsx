@@ -52,8 +52,8 @@ export default function Campaigns() {
       .map((r) => r.trim().toUpperCase())
       .filter((r) => r);
 
-    if (!formData.name || !formData.niche || regions.length === 0) {
-      toast.error("Preencha todos os campos obrigatórios (Nome, Nicho e Regiões)");
+    if (!formData.name || !formData.niche) {
+      toast.error("Preencha os campos obrigatórios (Nome e Nicho)");
       return;
     }
 
@@ -61,7 +61,7 @@ export default function Campaigns() {
       name: formData.name,
       niche: formData.niche,
       cnaeCodes: cnaeCodes.length > 0 ? cnaeCodes : undefined,
-      regions,
+      regions: regions.length > 0 ? regions : undefined,
       minCapitalSocial: formData.minCapitalSocial ? parseFloat(formData.minCapitalSocial) : undefined,
     });
   };
