@@ -60,8 +60,8 @@ export default function Campaigns() {
     createCampaignMutation.mutate({
       name: formData.name,
       niche: formData.niche,
-      cnaeCodes: cnaeCodes.length > 0 ? cnaeCodes : undefined,
-      regions: regions.length > 0 ? regions : undefined,
+      cnaeCodes: cnaeCodes.length > 0 ? cnaeCodes : [],
+      regions: regions.length > 0 ? regions : [],
       minCapitalSocial: formData.minCapitalSocial ? parseFloat(formData.minCapitalSocial) : undefined,
     });
   };
@@ -126,14 +126,23 @@ export default function Campaigns() {
                 <Label htmlFor="cnaeCodes">Códigos CNAE (opcional - separados por vírgula)</Label>
                 <Input
                   id="cnaeCodes"
-                  placeholder="Ex: 6190000, 6411100 (deixe em branco para buscar em todos os nichos)"
+                  placeholder="Ex: 6190000, 6411100"
                   value={formData.cnaeCodes}
                   onChange={(e) => setFormData({ ...formData, cnaeCodes: e.target.value })}
                 />
-                <p className="text-xs text-gray-500 mt-1">Se não preenchido, o sistema buscará empresas com alto potencial de volume de marketing em todas as categorias.</p>
+                <p className="text-xs text-gray-500 mt-1">Se não preenchido, o sistema buscará em todas as categorias.</p>
               </div>
 
-
+              <div>
+                <Label htmlFor="regions">Regiões (opcional - ex: SP, RJ, MG)</Label>
+                <Input
+                  id="regions"
+                  placeholder="Ex: SP, RJ, MG"
+                  value={formData.regions}
+                  onChange={(e) => setFormData({ ...formData, regions: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 mt-1">Se não preenchido, buscará em todo o Brasil.</p>
+              </div>
 
               <div>
                 <Label htmlFor="minCapitalSocial">Capital Social Mínimo (opcional)</Label>

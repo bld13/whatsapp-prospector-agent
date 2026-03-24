@@ -37,7 +37,7 @@ export const campaignsRouter = router({
       z.object({
         name: z.string().min(1, "Nome da campanha é obrigatório"),
         niche: z.string().min(1, "Nicho é obrigatório"),
-        cnaeCodes: z.array(z.string()).optional(),
+        cnaeCodes: z.array(z.string()).optional().default([]),
         regions: z.array(z.string()).optional().default([]),
         minCapitalSocial: z.number().optional(),
       })
@@ -48,7 +48,7 @@ export const campaignsRouter = router({
           userId: ctx.user.id,
           name: input.name,
           niche: input.niche,
-          cnaeCodes: input.cnaeCodes ? JSON.stringify(input.cnaeCodes) : null,
+          cnaeCodes: JSON.stringify(input.cnaeCodes || []),
           regions: JSON.stringify(input.regions && input.regions.length > 0 ? input.regions : ["BR"]),
           minCapitalSocial: input.minCapitalSocial
             ? input.minCapitalSocial.toString()
