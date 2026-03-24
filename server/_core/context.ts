@@ -20,6 +20,18 @@ export async function createContext(
     user = null;
   }
 
+  // Local development bypass: simulate a default user if none is found
+  if (!user && process.env.NODE_ENV !== 'production') {
+    user = {
+      id: "local-test-user",
+      name: "Usuário de Teste",
+      email: "teste@exemplo.com",
+      role: "admin",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    } as any;
+  }
+
   return {
     req: opts.req,
     res: opts.res,

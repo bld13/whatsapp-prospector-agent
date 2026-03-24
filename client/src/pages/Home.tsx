@@ -17,9 +17,9 @@ export default function Home() {
               <MessageSquare className="w-6 h-6 text-blue-600" />
               <h1 className="text-xl font-bold">WhatsApp Prospector</h1>
             </div>
-            <a href={getLoginUrl()}>
+            <Link href="/campaigns">
               <Button>Entrar</Button>
-            </a>
+            </Link>
           </div>
         </nav>
 
@@ -31,12 +31,12 @@ export default function Home() {
             <p className="text-xl text-gray-600 mb-8">
               Automatize a prospecção de empresas que podem se beneficiar da API Oficial do WhatsApp
             </p>
-            <a href={getLoginUrl()}>
+            <Link href="/campaigns">
               <Button size="lg" className="gap-2">
                 <Zap className="w-5 h-5" />
                 Começar Agora
               </Button>
-            </a>
+            </Link>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-16">
