@@ -380,4 +380,77 @@ export const campaignsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar outreach" });
       }
     }),
+
+  // Motor de Descoberta Autônoma: Busca empresas por filtros e qualifica em lote
+  runDiscovery: protectedProcedure
+    .input(z.object({ campaignId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { getCampaignById } = await import("../db");
+        const { searchCompaniesByFilters, fetchCompanyByCNPJ, convertOpenCNPJToLead } = await import("../opencnpjClient");
+        const { qualifyLead, detectApiOfficial, generateSalesArguments } = await import("../leadQualification");
+        const { createLead, getLeadByCnpj, createLeadQualification, createLeadContact, createSalesArgument } = await import("../db");
+
+        const campaign = await getCampaignById(input.campaignId);
+        if (!campaign || campaign.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+
+        const regions = JSON.parse(campaign.regions || "[]");
+        const cnaeCodes = JSON.parse(campaign.cnaeCodes || "[]");
+        const minCapital = campaign.minCapitalSocial ? parseFloat(campaign.minCapitalSocial.toString()) : 100000;
+
+        let totalFound = 0;
+        let totalQualified = 0;
+
+        // Processar cada região da campanha
+        for (const uf of regions) {
+          const cnpjs = await searchCompaniesByFilters({ uf, minCapital }, 5); // Buscar 5 por região
+          
+          for (const cnpj of cnpjs) {
+            // Pular se já existe
+            const existing = await getLeadByCnpj(cnpj);
+            if (existing) continue;
+
+            const companyData = await fetchCompanyByCNPJ(cnpj);
+            if (!companyData) continue;
+
+            const leadData = convertOpenCNPJToLead(companyData);
+            const leadResult = await createLead({ campaignId: campaign.id, ...leadData });
+            const leadRecord = await getLeadByCnpj(cnpj);
+            if (!leadRecord) continue;
+
+            totalFound++;
+
+            // Qualificar
+            const qualification = qualifyLead(leadRecord, minCapital);
+            const apiOfficial = detectApiOfficial(leadRecord);
+            const salesArgs = generateSalesArguments(leadRecord);
+
+            await createLeadQualification({
+              leadId: leadRecord.id,
+              isQualified: qualification.isQualified,
+              apiOfficialDetected: apiOfficial.detected,
+              apiOfficialConfidence: apiOfficial.confidence,
+              qualificationReason: JSON.stringify(qualification.reasons),
+              notes: JSON.stringify(apiOfficial.indicators),
+            });
+
+            await createLeadContact({ leadId: leadRecord.id, status: "novo" });
+            await createSalesArgument({
+              leadId: leadRecord.id,
+              title: salesArgs.title,
+              description: salesArgs.description,
+              keyBenefits: JSON.stringify(salesArgs.keyBenefits),
+              costReductionEstimate: salesArgs.costReductionEstimate,
+            });
+
+            if (qualification.isQualified) totalQualified++;
+          }
+        }
+
+        return { success: true, totalFound, totalQualified };
+      } catch (error) {
+        console.error("[Discovery] Erro ao rodar prospecção autônoma:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao rodar prospecção autônoma" });
+      }
+    }),
 });

@@ -209,17 +209,34 @@ export default function Campaigns() {
                     <p>{new Date(campaign.createdAt).toLocaleDateString("pt-BR")}</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  className="mt-4 w-full"
-                  onClick={() => {
-                    // Navegar para página de leads
-                    window.location.href = `/leads/${campaign.id}`;
-                  }}
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Ver Leads
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      window.location.href = `/leads/${campaign.id}`;
+                    }}
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Ver Leads
+                  </Button>
+                  <Button
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => {
+                      toast.promise(
+                        (trpc as any).campaigns.runDiscovery.mutateAsync({ campaignId: campaign.id }),
+                        {
+                          loading: "Agente prospectando mercado...",
+                          success: (data) => `Prospecção concluída! ${data.totalFound} empresas encontradas, ${data.totalQualified} qualificadas.`,
+                          error: (err) => `Erro: ${err.message}`,
+                        }
+                      );
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Prospectar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
