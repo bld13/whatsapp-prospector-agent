@@ -133,15 +133,7 @@ export default function Campaigns() {
                 <p className="text-xs text-gray-500 mt-1">Se não preenchido, o sistema buscará empresas com alto potencial de volume de marketing em todas as categorias.</p>
               </div>
 
-              <div>
-                <Label htmlFor="regions">Regiões (UF) * (separadas por vírgula)</Label>
-                <Input
-                  id="regions"
-                  placeholder="Ex: SP, RJ, MG"
-                  value={formData.regions}
-                  onChange={(e) => setFormData({ ...formData, regions: e.target.value })}
-                />
-              </div>
+
 
               <div>
                 <Label htmlFor="minCapitalSocial">Capital Social Mínimo (opcional)</Label>
