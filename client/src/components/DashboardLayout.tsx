@@ -56,33 +56,13 @@ export default function DashboardLayout({
     return <DashboardLayoutSkeleton />
   }
 
-  // Bypass authentication check in development mode
-  const isDev = import.meta.env.DEV;
-  if (!user && !isDev) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
-            </h1>
-            <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              window.location.href = getLoginUrl();
-            }}
-            size="lg"
-            className="w-full shadow-lg hover:shadow-xl transition-all"
-          >
-            Sign in
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Authentication completely disabled for local use
+  const mockUser = {
+    id: "local-user",
+    name: "Mateus",
+    email: "mateus@prospector.local",
+    role: "admin"
+  };
 
   return (
     <SidebarProvider
@@ -92,7 +72,7 @@ export default function DashboardLayout({
         } as CSSProperties
       }
     >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+      <DashboardLayoutContent setSidebarWidth={setSidebarWidth} user={mockUser}>
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
@@ -107,8 +87,9 @@ type DashboardLayoutContentProps = {
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
-}: DashboardLayoutContentProps) {
-  const { user, logout } = useAuth();
+  user,
+}: DashboardLayoutContentProps & { user: any }) {
+  const { logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";

@@ -12,7 +12,13 @@ import DashboardLayout from "./components/DashboardLayout";
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"}>
+        {() => (
+          <DashboardLayout>
+            <Campaigns />
+          </DashboardLayout>
+        )}
+      </Route>
       <Route path={"/campaigns"}>
         {() => (
           <DashboardLayout>
