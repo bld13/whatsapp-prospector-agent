@@ -23,9 +23,9 @@ export async function createContext(
   // Local development bypass: simulate a default user if none is found
   if (!user && process.env.NODE_ENV !== 'production') {
     user = {
-      id: "local-test-user",
-      name: "Usuário de Teste",
-      email: "teste@exemplo.com",
+      id: 1, // Use numeric ID for database compatibility
+      name: "Mateus",
+      email: "mateus@prospector.local",
       role: "admin",
       createdAt: new Date(),
       updatedAt: new Date()

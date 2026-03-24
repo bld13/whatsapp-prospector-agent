@@ -56,8 +56,10 @@ export const campaignsRouter = router({
           status: "draft",
         });
         return campaign;
-      } catch (error) {
+      } catch (error: any) {
         console.error("[Campaigns] Erro ao criar campanha:", error);
+        // Log more details for debugging
+        if (error.message) console.error("[Campaigns] Detalhes do erro:", error.message);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erro ao criar campanha",
