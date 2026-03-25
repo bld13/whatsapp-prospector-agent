@@ -390,18 +390,15 @@ export const campaignsRouter = router({
         const campaign = await getCampaignById(input.campaignId);
         if (!campaign || campaign.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
 
-        const regions = JSON.parse(campaign.regions || "[]");
-        const cnaeCodes = JSON.parse(campaign.cnaeCodes || "[]");
         const minCapital = campaign.minCapitalSocial ? parseFloat(campaign.minCapitalSocial.toString()) : 100000;
 
         let totalFound = 0;
         let totalQualified = 0;
 
-        // Processar cada região da campanha
-        for (const uf of regions) {
-          const cnpjs = await searchCompaniesByFilters({ uf, minCapital }, 5); // Buscar 5 por região
-          
-          for (const cnpj of cnpjs) {
+        // Prospecção simplificada baseada no Nicho e Capital Social (Default Brasil)
+        const cnpjs = await searchCompaniesByFilters({ uf: "BR", minCapital }, 10); 
+        
+        for (const cnpj of cnpjs) {
             // Pular se já existe
             const existing = await getLeadByCnpj(cnpj);
             if (existing) continue;
@@ -441,7 +438,6 @@ export const campaignsRouter = router({
 
             if (qualification.isQualified) totalQualified++;
           }
-        }
 
         return { success: true, totalFound, totalQualified };
       } catch (error) {
