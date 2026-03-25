@@ -37,8 +37,8 @@ export const campaignsRouter = router({
       z.object({
         name: z.string().min(1, "Nome da campanha é obrigatório"),
         niche: z.string().min(1, "Nicho é obrigatório"),
-        cnaeCodes: z.array(z.string()).optional().default([]),
-        regions: z.array(z.string()).optional().default([]),
+        cnaeCodes: z.array(z.string()).default([]),
+        regions: z.array(z.string()).default([]),
         minCapitalSocial: z.number().optional(),
       })
     )
