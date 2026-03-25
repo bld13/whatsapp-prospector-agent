@@ -37,11 +37,11 @@ export const campaignsRouter = router({
       z.object({
         name: z.string().min(1, "Nome da campanha é obrigatório"),
         niche: z.string().min(1, "Nicho é obrigatório"),
-
         minCapitalSocial: z.number().optional(),
-      })
+      }).passthrough()
     )
     .mutation(async ({ ctx, input }) => {
+      console.log("[Campaigns] Criando campanha. Input recebido:", JSON.stringify(input));
       try {
         const campaign = await createCampaign({
           userId: ctx.user.id,
