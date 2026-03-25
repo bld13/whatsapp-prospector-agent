@@ -16,8 +16,7 @@ export default function Campaigns() {
   const [formData, setFormData] = useState({
     name: "",
     niche: "",
-    cnaeCodes: "",
-    regions: "",
+
     minCapitalSocial: "",
   });
 
@@ -28,8 +27,7 @@ export default function Campaigns() {
       setFormData({
         name: "",
         niche: "",
-        cnaeCodes: "",
-        regions: "",
+
         minCapitalSocial: "",
       });
       setIsDialogOpen(false);
@@ -43,14 +41,7 @@ export default function Campaigns() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const cnaeCodes = formData.cnaeCodes
-      .split(",")
-      .map((c) => c.trim())
-      .filter((c) => c);
-    const regions = formData.regions
-      .split(",")
-      .map((r) => r.trim().toUpperCase())
-      .filter((r) => r);
+
 
     if (!formData.name || !formData.niche) {
       toast.error("Preencha os campos obrigatórios (Nome e Nicho)");
@@ -60,8 +51,7 @@ export default function Campaigns() {
     createCampaignMutation.mutate({
       name: formData.name,
       niche: formData.niche,
-      cnaeCodes: cnaeCodes.length > 0 ? cnaeCodes : [],
-      regions: regions.length > 0 ? regions : [],
+
       minCapitalSocial: formData.minCapitalSocial ? parseFloat(formData.minCapitalSocial) : undefined,
     });
   };
@@ -122,27 +112,7 @@ export default function Campaigns() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="cnaeCodes">Códigos CNAE (opcional - separados por vírgula)</Label>
-                <Input
-                  id="cnaeCodes"
-                  placeholder="Ex: 6190000, 6411100"
-                  value={formData.cnaeCodes}
-                  onChange={(e) => setFormData({ ...formData, cnaeCodes: e.target.value })}
-                />
-                <p className="text-xs text-gray-500 mt-1">Se não preenchido, o sistema buscará em todas as categorias.</p>
-              </div>
 
-              <div>
-                <Label htmlFor="regions">Regiões (opcional - ex: SP, RJ, MG)</Label>
-                <Input
-                  id="regions"
-                  placeholder="Ex: SP, RJ, MG"
-                  value={formData.regions}
-                  onChange={(e) => setFormData({ ...formData, regions: e.target.value })}
-                />
-                <p className="text-xs text-gray-500 mt-1">Se não preenchido, buscará em todo o Brasil.</p>
-              </div>
 
               <div>
                 <Label htmlFor="minCapitalSocial">Capital Social Mínimo (opcional)</Label>
@@ -189,16 +159,7 @@ export default function Campaigns() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  {campaign.cnaeCodes && campaign.cnaeCodes.length > 0 && (
-                    <div>
-                      <span className="text-gray-600">CNAE:</span>
-                      <p className="font-mono text-xs">{campaign.cnaeCodes.join(", ")}</p>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-gray-600">Regiões:</span>
-                    <p className="font-mono text-xs">{campaign.regions.join(", ")}</p>
-                  </div>
+
                   {campaign.minCapitalSocial && (
                     <div>
                       <span className="text-gray-600">Capital Mínimo:</span>

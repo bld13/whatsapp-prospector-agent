@@ -37,8 +37,7 @@ export const campaignsRouter = router({
       z.object({
         name: z.string().min(1, "Nome da campanha é obrigatório"),
         niche: z.string().min(1, "Nicho é obrigatório"),
-        cnaeCodes: z.array(z.string()).default([]),
-        regions: z.array(z.string()).default([]),
+
         minCapitalSocial: z.number().optional(),
       })
     )
@@ -48,8 +47,7 @@ export const campaignsRouter = router({
           userId: ctx.user.id,
           name: input.name,
           niche: input.niche,
-          cnaeCodes: JSON.stringify(input.cnaeCodes || []),
-          regions: JSON.stringify(input.regions && input.regions.length > 0 ? input.regions : ["BR"]),
+
           minCapitalSocial: input.minCapitalSocial
             ? input.minCapitalSocial.toString()
             : null,
@@ -73,8 +71,6 @@ export const campaignsRouter = router({
       const campaigns = await getCampaignsByUserId(ctx.user.id);
       return campaigns.map((c) => ({
         ...c,
-        cnaeCodes: JSON.parse(c.cnaeCodes || "[]"),
-        regions: JSON.parse(c.regions || "[]"),
         minCapitalSocial: c.minCapitalSocial
           ? parseFloat(c.minCapitalSocial.toString())
           : null,
@@ -108,8 +104,6 @@ export const campaignsRouter = router({
         }
         return {
           ...campaign,
-          cnaeCodes: JSON.parse(campaign.cnaeCodes || "[]"),
-          regions: JSON.parse(campaign.regions || "[]"),
           minCapitalSocial: campaign.minCapitalSocial
             ? parseFloat(campaign.minCapitalSocial.toString())
             : null,

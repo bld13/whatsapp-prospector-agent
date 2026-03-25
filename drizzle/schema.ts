@@ -34,8 +34,7 @@ export const campaigns = mysqlTable(
     userId: int("userId").notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     niche: varchar("niche", { length: 255 }).notNull(),
-    cnaeCodes: text("cnaeCodes"), // JSON array of CNAE codes (optional)
-    regions: text("regions").notNull(), // JSON array of UF codes (e.g., ["SP", "RJ"])
+
     minCapitalSocial: decimal("minCapitalSocial", { precision: 15, scale: 2 }),
     status: mysqlEnum("status", ["draft", "active", "paused", "completed"]).default("draft").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
